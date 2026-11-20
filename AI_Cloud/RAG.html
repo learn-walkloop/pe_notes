@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG (Retrieval-Augmented Generation) - 기술사 답안</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --accent: #0f766e;
+      --dark: #0f172a;
+      --text: #1e293b;
+      --muted: #475569;
+      --border: #cbd5e1;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --warn-bg: #fffbeb;
+      --warn-border: #fcd34d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px 16px;
+      font-size: 14px;
+    }
+
+    .sheet {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+      padding: 32px 38px;
+    }
+
+    .doc-header {
+      border-bottom: 3px solid var(--primary);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .badge-domain {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .badge-type {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .doc-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--dark);
+      letter-spacing: -0.02em;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    section {
+      margin-bottom: 22px;
+    }
+
+    h2 {
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--primary);
+      border-left: 5px solid var(--primary);
+      padding: 4px 10px;
+      margin-bottom: 12px;
+      background: linear-gradient(90deg, var(--primary-light) 0%, transparent 100%);
+    }
+
+    h3 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--dark);
+      margin: 12px 0 7px 0;
+    }
+
+    h3::before {
+      content: "▪ ";
+      color: var(--primary);
+    }
+
+    .lead-box {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      border-radius: 6px;
+      padding: 11px 15px;
+      margin-bottom: 10px;
+    }
+
+    .lead-box strong {
+      color: var(--primary);
+    }
+
+    ul.clean-list {
+      list-style: none;
+      padding-left: 2px;
+    }
+
+    ul.clean-list li {
+      position: relative;
+      padding-left: 14px;
+      margin-bottom: 5px;
+    }
+
+    ul.clean-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 8px 0 14px 0;
+      break-inside: avoid;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      border-top: 2px solid var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--dark);
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    td.center {
+      text-align: center;
+      font-weight: 700;
+      background: #f8fafc;
+      color: var(--dark);
+    }
+
+    .diagram-box {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 14px 8px 14px;
+      margin: 10px 0 14px 0;
+      break-inside: avoid;
+    }
+
+    .diagram-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .memo-box {
+      background: var(--warn-bg);
+      border: 1.5px solid var(--warn-border);
+      border-radius: 8px;
+      padding: 13px 16px;
+      margin-top: 18px;
+      break-inside: avoid;
+    }
+
+    .memo-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #92400e;
+      margin-bottom: 8px;
+    }
+
+    .memo-list {
+      list-style: none;
+      font-size: 13px;
+    }
+
+    .memo-list li {
+      margin-bottom: 5px;
+    }
+
+    .mnemonic {
+      display: inline-block;
+      background: #d97706;
+      color: #fff;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .sheet {
+        padding: 20px 16px;
+      }
+      .meta-box {
+        text-align: left;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        font-size: 12px;
+      }
+      .sheet {
+        box-shadow: none;
+        border: none;
+        padding: 8mm 10mm;
+        max-width: 100%;
+      }
+      h2 {
+        break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <article class="sheet">
+    <!-- Header -->
+    <header class="doc-header">
+      <div>
+        <div class="badge-group">
+          <span class="badge badge-domain">AI · LLM</span>
+          <span class="badge badge-type">2교시 서술형 (25분 · 답안지 약 3p 분량)</span>
+        </div>
+        <h1 class="doc-title">RAG (Retrieval-Augmented Generation, 검색 증강 생성)</h1>
+      </div>
+      <div class="meta-box">
+        <div><strong>작성 목표:</strong> 손글씨 실전 답안 적정량</div>
+        <div><strong>핵심축:</strong> 환각억제 · Hybrid Search · Fine-tuning 비교</div>
+      </div>
+    </header>
+
+    <!-- Ⅰ. 개요 -->
+    <section>
+      <h2>Ⅰ. 개요</h2>
+      <div class="lead-box">
+        <strong>정의:</strong> RAG는 LLM이 응답을 생성하기 전, <strong>외부 신뢰 저장소(Vector DB 등)에서 최신·도메인 문서를 검색(Retrieval)</strong>하고 프롬프트에 <strong>증강(Augmentation)</strong>하여 근거 기반 답변을 <strong>생성(Generation)</strong>하는 아키텍처
+      </div>
+      <ul class="clean-list">
+        <li><strong>등장 배경(기존 LLM 한계):</strong> ① 학습 외 정보 생성 시 <strong>환각(Hallucination)</strong> 발생, ② 학습 시점 이후 <strong>지식 최신성 결여(Cutoff)</strong>, ③ 사내 비공개 데이터 학습 시 <strong>보안 유출 위험</strong> 및 고비용 재학습 문제</li>
+      </ul>
+    </section>
+
+    <!-- Ⅱ. 아키텍처 및 동작 원리 -->
+    <section>
+      <h2>Ⅱ. RAG 아키텍처 및 핵심 구성요소</h2>
+
+      <div class="diagram-box">
+        <div class="diagram-title">[그림] RAG 동작 아키텍처 (실전 답안지 손그림용 표준 블록도)</div>
+        <svg viewBox="0 0 840 270" xmlns="http://www.w3.org/2000/svg" aria-label="RAG Exam Diagram">
+          <defs>
+            <marker id="arr-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a8a" />
+            </marker>
+            <marker id="arr-t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0f766e" />
+            </marker>
+          </defs>
+
+          <!-- Offline Indexing -->
+          <rect x="12" y="10" width="816" height="96" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="5 3" />
+          <text x="24" y="30" font-size="12.5" font-weight="800" fill="#1e3a8a">① Indexing (사전 색인)</text>
+
+          <rect x="26" y="42" width="145" height="52" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="98.5" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">원천 문서 수집</text>
+          <text x="98.5" y="82" text-anchor="middle" font-size="11" fill="#475569">PDF, Wiki, DB</text>
+
+          <line x1="171" y1="68" x2="207" y2="68" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr-b)" />
+
+          <rect x="210" y="42" width="165" height="52" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="292.5" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">전처리 &amp; Chunking</text>
+          <text x="292.5" y="82" text-anchor="middle" font-size="11" fill="#475569">파싱, 의미/계층 분할</text>
+
+          <line x1="375" y1="68" x2="411" y2="68" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr-b)" />
+
+          <rect x="414" y="42" width="155" height="52" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="491.5" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Embedding</text>
+          <text x="491.5" y="82" text-anchor="middle" font-size="11" fill="#475569">텍스트 → 벡터 변환</text>
+
+          <line x1="569" y1="68" x2="605" y2="68" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr-b)" />
+
+          <rect x="608" y="40" width="206" height="56" rx="6" fill="#1e3a8a" />
+          <text x="711" y="63" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">Vector DB (Hybrid)</text>
+          <text x="711" y="82" text-anchor="middle" font-size="11" fill="#dbeafe">Dense + BM25 + ACL 메타</text>
+
+          <!-- Online Retrieval & Generation -->
+          <rect x="12" y="132" width="816" height="126" rx="8" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.5" stroke-dasharray="5 3" />
+          <text x="24" y="152" font-size="12.5" font-weight="800" fill="#0f766e">② Retrieval &amp; Generation (실시간 검색·생성)</text>
+
+          <rect x="26" y="172" width="125" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="88.5" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">사용자 질의</text>
+          <text x="88.5" y="218" text-anchor="middle" font-size="11" fill="#475569">Query Rewrite</text>
+          <text x="88.5" y="232" text-anchor="middle" font-size="11" fill="#475569">/ 질의 임베딩</text>
+
+          <line x1="151" y1="206" x2="181" y2="206" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="184" y="172" width="175" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="271.5" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Hybrid Search</text>
+          <text x="271.5" y="216" text-anchor="middle" font-size="11" fill="#475569">Dense(ANN) + BM25</text>
+          <text x="271.5" y="231" text-anchor="middle" font-size="11" fill="#475569">RRF 결합 · Top-N 추출</text>
+
+          <!-- DB link -->
+          <path d="M 670 96 L 670 118 L 255 118 L 255 170" fill="none" stroke="#1e3a8a" stroke-width="1.6" marker-end="url(#arr-b)" />
+          <text x="462" y="114" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e3a8a">Top-N 후보 문서 &amp; 권한 필터링</text>
+
+          <line x1="359" y1="206" x2="389" y2="206" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="392" y="172" width="135" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="459.5" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Reranking</text>
+          <text x="459.5" y="216" text-anchor="middle" font-size="11" fill="#475569">Cross-Encoder</text>
+          <text x="459.5" y="231" text-anchor="middle" font-size="11" fill="#475569">Top-K 정밀 선별</text>
+
+          <line x1="527" y1="206" x2="557" y2="206" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="560" y="172" width="125" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="622.5" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Prompt 증강</text>
+          <text x="622.5" y="216" text-anchor="middle" font-size="11" fill="#475569">Query + Context</text>
+          <text x="622.5" y="231" text-anchor="middle" font-size="11" fill="#475569">문맥 결합·압축</text>
+
+          <line x1="685" y1="206" x2="715" y2="206" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="718" y="172" width="96" height="68" rx="6" fill="#0f766e" />
+          <text x="766" y="198" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">LLM 생성</text>
+          <text x="766" y="216" text-anchor="middle" font-size="10.5" fill="#ccfbf1">근거 기반 응답</text>
+          <text x="766" y="231" text-anchor="middle" font-size="10.5" fill="#ccfbf1">Citation 출력</text>
+        </svg>
+      </div>
+
+      <h3>1. 단계별 핵심 메커니즘</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 18%;">단계</th>
+              <th style="width: 26%;">핵심 기술</th>
+              <th style="width: 56%;">동작 설명 및 설계 포인트</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">Indexing</td>
+              <td>Chunking, Embedding</td>
+              <td>문서 구조(표/제목) 유지 파싱 후 Semantic·Overlap 분할 및 벡터화하여 ACL 메타데이터와 함께 Vector DB 적재</td>
+            </tr>
+            <tr>
+              <td class="center">Retrieval</td>
+              <td>Hybrid Search, Reranking</td>
+              <td>의미 검색(Dense HNSW) + 키워드(Sparse BM25)를 RRF로 결합(Recall 확보) 후 Cross-Encoder Reranking으로 정밀도 향상</td>
+            </tr>
+            <tr>
+              <td class="center">Augmentation<br/>&amp; Generation</td>
+              <td>Context 배치, Grounding</td>
+              <td>Lost-in-the-Middle 방지를 위해 핵심 문맥을 프롬프트 앞·뒤 배치, 근거 없는 추론 차단 및 출처(Citation) 명시</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ⅲ. 고도화 기법 및 Fine-Tuning 비교 -->
+    <section>
+      <h2>Ⅲ. RAG 고도화 패러다임 및 Fine-Tuning 비교</h2>
+
+      <h3>1. RAG 아키텍처 고도화 유형</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 22%;">구분</th>
+              <th style="width: 44%;">핵심 기법 및 특징</th>
+              <th style="width: 34%;">적용 효과</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">Naive RAG</td>
+              <td>단순 고정 크기 분할 → 벡터 Top-K 검색 → LLM 생성</td>
+              <td>구현 단순하나 검색 노이즈·문맥 단절 취약</td>
+            </tr>
+            <tr>
+              <td class="center">Advanced RAG</td>
+              <td>질의 재작성(Query Rewrite, HyDE) + Hybrid Search + Reranking</td>
+              <td>검색 정밀도/재현율 동시 개선 (실무 표준)</td>
+            </tr>
+            <tr>
+              <td class="center">Graph / Agentic RAG</td>
+              <td>Knowledge Graph 기반 다중 홉 탐색(GraphRAG) 및 자가 검증·반복 검색(Self-RAG, Agent)</td>
+              <td>복합 인과관계 추론 및 전역 문서 요약 가능</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2. RAG vs Fine-Tuning 비교</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">비교 항목</th>
+              <th style="width: 40%;">RAG (검색 증강 생성)</th>
+              <th style="width: 40%;">Fine-Tuning (미세 조정)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">지식 최신성</td>
+              <td><strong>매우 우수</strong> (DB 문서 갱신 즉시 반영)</td>
+              <td>취약 (신규 지식마다 재학습 필요)</td>
+            </tr>
+            <tr>
+              <td class="center">환각 및 출처</td>
+              <td><strong>낮음</strong> (원문 근거 및 출처 제시 가능)</td>
+              <td>가중치 내재화로 출처 추적 불가</td>
+            </tr>
+            <tr>
+              <td class="center">핵심 강점</td>
+              <td>사실 기반 질의응답(Factuality)</td>
+              <td>도메인 어휘, 출력 형식, 추론 스타일 학습</td>
+            </tr>
+            <tr>
+              <td class="center">보안 · 비용</td>
+              <td><strong>문서 단위 권한 제어(ACL) 용이</strong>, 구축 비용 낮음</td>
+              <td>학습 데이터 유출 위험, GPU 학습 비용 높음</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ⅳ. 평가, 한계점 및 기술사적 제언 -->
+    <section>
+      <h2>Ⅳ. 품질 평가, 실무 고려사항 및 기술사적 제언</h2>
+      <ul class="clean-list">
+        <li><strong>정량적 평가 (RAGAS 프레임워크):</strong> 검색 품질(<code>Context Precision / Recall</code>)과 생성 품질(<code>Faithfulness</code> 충실도, <code>Answer Relevance</code> 응답 적합성)을 분리 측정</li>
+        <li><strong>실무 한계 및 대응:</strong> ① 비정형 표/PDF 파싱 오류 → Layout-aware 파서 적용, ② 검색 지연(Latency) → 시맨틱 캐시(Semantic Cache) 도입, ③ 권한 우회 노출 → Vector DB Pre-filtering(ACL) 적용</li>
+        <li><strong>기술사적 제언:</strong> 도메인 문체·추론 패턴은 <strong>Fine-Tuning</strong>으로 내재화하고, 수시 변경되는 사실·규정 지식은 <strong>Advanced RAG</strong>로 분리 결합하는 <strong>하이브리드(RAFT) 아키텍처</strong> 및 LLMOps 기반 지속 평가 체계 구축 필요</li>
+      </ul>
+    </section>
+
+    <!-- 암기 팁 -->
+    <aside class="memo-box">
+      <div class="memo-title">💡 시험장 암기 팁 (두문자 요약)</div>
+      <ul class="memo-list">
+        <li><span class="mnemonic">배경: 환·최·보</span> <strong>환</strong>각 억제 · <strong>최</strong>신성(Cutoff) · 사내 <strong>보</strong>안(ACL)</li>
+        <li><span class="mnemonic">흐름: 전·임·하·리·증·생</span> <strong>전</strong>처리(Chunk) → <strong>임</strong>베딩 → <strong>하</strong>이브리드검색 → <strong>리</strong>랭킹 → <strong>증</strong>강 → <strong>생</strong>성(Citation)</li>
+        <li><span class="mnemonic">평가: 컨·페·앤</span> <strong>Con</strong>text Precision/Recall · <strong>Fai</strong>thfulness · <strong>Ans</strong>wer Relevance</li>
+      </ul>
+    </aside>
+  </article>
+</body>
+</html>
