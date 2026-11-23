@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시계열 분석 (Time Series Analysis) - 기술사 답안 (1교시 · 2교시)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+      padding: 20px 16px 36px 16px;
+      font-size: 14px;
+    }
+
+    .top-nav {
+      max-width: 900px;
+      margin: 0 auto 14px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+
+    .top-nav-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-pill {
+      display: inline-block;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border: 1px solid #bfdbfe;
+    }
+
+    .nav-pill.p2 {
+      background: #f0fdfa;
+      color: #0f766e;
+      border-color: #99f6e4;
+    }
+
+    .sheet {
+      --pe-primary: #1e3a8a;
+      --pe-primary-light: #eff6ff;
+      --pe-primary-border: #bfdbfe;
+      --pe-accent: #0f766e;
+      --pe-dark: #0f172a;
+      --pe-text: #1e293b;
+      --pe-muted: #475569;
+      --pe-border: #cbd5e1;
+      --pe-card: #ffffff;
+      --pe-warn-bg: #fffbeb;
+      --pe-warn-border: #fcd34d;
+
+      max-width: 900px;
+      margin: 0 auto 28px auto;
+      background: var(--pe-card);
+      border: 1px solid var(--pe-border);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+      padding: 32px 38px;
+    }
+
+    .sheet.period-2 {
+      --pe-primary: #1e3a8a;
+    }
+
+    .doc-header {
+      border-bottom: 3px solid var(--pe-primary);
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .badge-domain {
+      background: var(--pe-primary);
+      color: #fff;
+    }
+
+    .badge-type {
+      background: var(--pe-primary-light);
+      color: var(--pe-primary);
+      border: 1px solid var(--pe-primary-border);
+    }
+
+    .badge-type.p1 {
+      background: #f0fdfa;
+      color: #0f766e;
+      border-color: #99f6e4;
+    }
+
+    .doc-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--pe-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 12px;
+      color: var(--pe-muted);
+      line-height: 1.45;
+    }
+
+    section {
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--pe-primary);
+      border-left: 5px solid var(--pe-primary);
+      padding: 4px 10px;
+      margin-bottom: 11px;
+      background: linear-gradient(90deg, var(--pe-primary-light) 0%, transparent 100%);
+    }
+
+    h3 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--pe-dark);
+      margin: 12px 0 7px 0;
+    }
+
+    h3::before {
+      content: "▪ ";
+      color: var(--pe-primary);
+    }
+
+    .lead-box {
+      background: var(--pe-primary-light);
+      border: 1px solid var(--pe-primary-border);
+      border-radius: 6px;
+      padding: 11px 15px;
+      margin-bottom: 10px;
+    }
+
+    .lead-box strong {
+      color: var(--pe-primary);
+    }
+
+    ul.clean-list {
+      list-style: none;
+      padding-left: 2px;
+    }
+
+    ul.clean-list li {
+      position: relative;
+      padding-left: 14px;
+      margin-bottom: 5px;
+    }
+
+    ul.clean-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--pe-primary);
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 8px 0 14px 0;
+      break-inside: avoid;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      border-top: 2px solid var(--pe-primary);
+      border-bottom: 2px solid var(--pe-primary);
+    }
+
+    th, td {
+      border: 1px solid var(--pe-border);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--pe-dark);
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    td.center {
+      text-align: center;
+      font-weight: 700;
+      background: #f8fafc;
+      color: var(--pe-dark);
+    }
+
+    code {
+      font-family: "Consolas", "D2Coding", monospace;
+      font-size: 12.5px;
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: #0f172a;
+    }
+
+    .diagram-box {
+      border: 1px solid var(--pe-border);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 14px 8px 14px;
+      margin: 10px 0 14px 0;
+      break-inside: avoid;
+    }
+
+    .diagram-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--pe-muted);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .memo-box {
+      background: var(--pe-warn-bg);
+      border: 1.5px solid var(--pe-warn-border);
+      border-radius: 8px;
+      padding: 13px 16px;
+      margin-top: 16px;
+      break-inside: avoid;
+    }
+
+    .memo-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #92400e;
+      margin-bottom: 8px;
+    }
+
+    .memo-list {
+      list-style: none;
+      font-size: 13px;
+    }
+
+    .memo-list li {
+      margin-bottom: 5px;
+    }
+
+    .mnemonic {
+      display: inline-block;
+      background: #d97706;
+      color: #fff;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .sheet {
+        padding: 20px 16px;
+      }
+      .meta-box {
+        text-align: left;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+        font-size: 12px;
+      }
+      .top-nav {
+        display: none;
+      }
+      .sheet {
+        box-shadow: none;
+        border: none;
+        padding: 8mm 10mm;
+        margin: 0;
+        max-width: 100%;
+      }
+      .sheet.period-2 {
+        break-before: page;
+        page-break-before: always;
+      }
+      h2 {
+        break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav" aria-label="교시 이동">
+    <div class="top-nav-title">시계열 분석 (Time Series Analysis) 답안 구성</div>
+    <div class="nav-links">
+      <a class="nav-pill" href="#period-1">1교시 용어형 (1~1.5p)</a>
+      <a class="nav-pill p2" href="#period-2">2교시 서술형 (2.5~3p)</a>
+    </div>
+  </nav>
+
+  <!-- ==================== 1교시 용어형 ==================== -->
+  <article id="period-1" class="sheet period-1">
+    <header class="doc-header">
+      <div>
+        <div class="badge-group">
+          <span class="badge badge-domain">AI · 빅데이터 · 통계</span>
+          <span class="badge badge-type p1">1교시 용어형 (10분 · 답안지 약 1~1.5p 분량)</span>
+        </div>
+        <h1 class="doc-title">시계열 분석 (Time Series Analysis)</h1>
+      </div>
+      <div class="meta-box">
+        <div><strong>작성 목표:</strong> 10분 실전 압축 답안</div>
+        <div><strong>핵심축:</strong> 4대 요인(TSCI) · 정상성 · 모델 비교</div>
+      </div>
+    </header>
+
+    <!-- Ⅰ. 개요 / 정의 -->
+    <section>
+      <h2>Ⅰ. 개요 및 정의</h2>
+      <div class="lead-box">
+        <strong>정의:</strong> 시간의 흐름에 따라 일정 간격으로 기록된 순차 데이터의 <strong>자기상관성 및 변동 패턴(추세·계절성 등)</strong>을 통계·AI 모델로 분석하여 <strong>미래 예측</strong>과 <strong>이상 탐지</strong>를 수행하는 기법
+      </div>
+      <ul class="clean-list">
+        <li><strong>핵심 특성:</strong> 관측치 간 <strong>시간적 순서(Order)와 종속성</strong>이 존재하여 무작위 분할 불가 → <strong>정상성(Stationarity)</strong> 확보 및 시계열 전용 검증 필수</li>
+      </ul>
+    </section>
+
+    <!-- Ⅱ. 개념도 및 핵심 원리 -->
+    <section>
+      <h2>Ⅱ. 개념도 및 핵심 구성요소</h2>
+
+      <div class="diagram-box">
+        <div class="diagram-title">[그림] 시계열 분석 핵심 흐름도 (1교시 1분 손그림용)</div>
+        <svg viewBox="0 0 840 105" xmlns="http://www.w3.org/2000/svg" aria-label="Time Series 1st Period Flow">
+          <defs>
+            <marker id="arr1-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a8a" />
+            </marker>
+          </defs>
+
+          <rect x="12" y="16" width="132" height="72" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="78" y="42" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1e3a8a">원시 시계열</text>
+          <text x="78" y="61" text-anchor="middle" font-size="11" fill="#475569">결측보간 · 이상치</text>
+          <text x="78" y="76" text-anchor="middle" font-size="11" fill="#475569">(Y<tspan dy="3" font-size="9">t</tspan><tspan dy="-3">)</tspan></text>
+
+          <line x1="144" y1="52" x2="174" y2="52" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr1-b)" />
+
+          <rect x="177" y="16" width="150" height="72" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="252" y="42" text-anchor="middle" font-size="12.5" font-weight="800" fill="#0f172a">요인 분해 (TSCI)</text>
+          <text x="252" y="61" text-anchor="middle" font-size="11" fill="#475569">추세(T) · 계절(S)</text>
+          <text x="252" y="76" text-anchor="middle" font-size="11" fill="#475569">순환(C) · 불규칙(I)</text>
+
+          <line x1="327" y1="52" x2="357" y2="52" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr1-b)" />
+
+          <rect x="360" y="16" width="150" height="72" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="435" y="42" text-anchor="middle" font-size="12.5" font-weight="800" fill="#0f172a">정상화 &amp; 식별</text>
+          <text x="435" y="61" text-anchor="middle" font-size="11" fill="#475569">로그(분산) · 차분(평균)</text>
+          <text x="435" y="76" text-anchor="middle" font-size="11" fill="#475569">ADF · ACF/PACF</text>
+
+          <line x1="510" y1="52" x2="540" y2="52" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr1-b)" />
+
+          <rect x="543" y="16" width="142" height="72" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="614" y="42" text-anchor="middle" font-size="12.5" font-weight="800" fill="#0f766e">모델링 학습</text>
+          <text x="614" y="61" text-anchor="middle" font-size="11" fill="#475569">ARIMA / Prophet</text>
+          <text x="614" y="76" text-anchor="middle" font-size="11" fill="#475569">LSTM / PatchTST</text>
+
+          <line x1="685" y1="52" x2="715" y2="52" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr1-b)" />
+
+          <rect x="718" y="16" width="110" height="72" rx="6" fill="#1e3a8a" />
+          <text x="773" y="42" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">검증 · 예측</text>
+          <text x="773" y="61" text-anchor="middle" font-size="10.5" fill="#dbeafe">Walk-Forward</text>
+          <text x="773" y="76" text-anchor="middle" font-size="10.5" fill="#dbeafe">수요예측·이상탐지</text>
+        </svg>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 24%;">핵심 구성요소</th>
+              <th style="width: 48%;">내용 및 처리 원리</th>
+              <th style="width: 28%;">기법 · 검정</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">4대 변동 요인</td>
+              <td><strong>추세(T)</strong> 장기 경향 · <strong>계절(S)</strong> 고정 주기 · <strong>순환(C)</strong> 경기 파동 · <strong>불규칙(I)</strong> 잡음</td>
+              <td>가법(<code>T+S+C+I</code>) / 승법 분해</td>
+            </tr>
+            <tr>
+              <td class="center">정상성 확보</td>
+              <td>시점 무관 평균·분산·공분산 일정 (평균 비정상→<strong>차분</strong>, 분산 비정상→<strong>로그변환</strong>)</td>
+              <td><code>ADF</code>, <code>KPSS</code> 단위근 검정</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Ⅲ. 모델 비교 및 활용·제언 -->
+    <section>
+      <h2>Ⅲ. 주요 기법 비교 및 활용 · 제언</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 24%;">구분</th>
+              <th style="width: 38%;">통계 기반 (ARIMA / SARIMA)</th>
+              <th style="width: 38%;">AI · 딥러닝 (LSTM / Transformer)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">특징 · 강점</td>
+              <td>선형 자기상관 해석력 우수, 소규모 데이터 적합</td>
+              <td>다변량·장기 비선형 패턴 학습, 고성능 예측</td>
+            </tr>
+            <tr>
+              <td class="center">한계 · 적용</td>
+              <td>비선형 취약 / 단기 수요·지표 예측</td>
+              <td>대용량 데이터·GPU 필요 / IoT·금융·트래픽</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="clean-list">
+        <li><strong>활용 및 제언:</strong> 데이터 누수 방지를 위한 <strong>Walk-Forward 교차검증</strong>과 <code>Concept Drift</code> 감시 기반의 <strong>통계+딥러닝 하이브리드 MLOps 체계</strong> 구축 필요</li>
+      </ul>
+    </section>
+
+    <aside class="memo-box">
+      <div class="memo-title">💡 1교시 시험장 암기 팁</div>
+      <ul class="memo-list">
+        <li><span class="mnemonic">요인: 추·계·순·불</span> <strong>추</strong>세(T) · <strong>계</strong>절(S) · <strong>순</strong>환(C) · <strong>불</strong>규칙(I)</li>
+        <li><span class="mnemonic">정상성: 평·분·공 / 로·차</span> <strong>평</strong>균·<strong>분</strong>산·<strong>공</strong>분산 일정 / 분산 <strong>로</strong>그변환 · 평균 <strong>차</strong>분</li>
+      </ul>
+    </aside>
+  </article>
+
+  <!-- ==================== 2교시 서술형 ==================== -->
+  <article id="period-2" class="sheet period-2">
+    <!-- Header -->
+    <header class="doc-header">
+      <div>
+        <div class="badge-group">
+          <span class="badge badge-domain">AI · 빅데이터 · 통계</span>
+          <span class="badge badge-type">2교시 서술형 (25분 · 답안지 약 2.5~3p 분량)</span>
+        </div>
+        <h1 class="doc-title">시계열 분석 (Time Series Analysis)</h1>
+      </div>
+      <div class="meta-box">
+        <div><strong>작성 목표:</strong> 손글씨 실전 답안 적정량</div>
+        <div><strong>핵심축:</strong> 4대 요인 분해 · 정상성(Stationarity) · ARIMA vs 딥러닝</div>
+      </div>
+    </header>
+
+    <!-- Ⅰ. 개요 -->
+    <section>
+      <h2>Ⅰ. 개요</h2>
+      <div class="lead-box">
+        <strong>정의:</strong> 시간의 흐름에 따라 일정 간격으로 관측된 순차 데이터(Time Series)의 <strong>자기상관성 및 시간적 변동 패턴</strong>을 통계·AI 기법으로 모델링하여 <strong>미래 예측(Forecasting)</strong>과 <strong>이상 탐지(Anomaly Detection)</strong>를 수행하는 분석 기법
+      </div>
+      <ul class="clean-list">
+        <li><strong>횡단면 데이터와의 차이:</strong> 관측치 간 <strong>시간적 순서(Order)와 종속성(Autocorrelation)</strong>이 존재하므로 무작위 셔플·일반 K-Fold 검증 불가</li>
+        <li><strong>핵심 전제(정상성):</strong> 시점과 무관하게 통계적 특성(평균·분산·공분산)이 일정한 <strong>정상성(Stationarity)</strong> 확보가 전통적 시계열 모델링의 필수 조건</li>
+      </ul>
+    </section>
+
+    <!-- Ⅱ. 시계열 구성요소 및 분석 파이프라인 -->
+    <section>
+      <h2>Ⅱ. 시계열 구성요소 및 분석 파이프라인</h2>
+
+      <div class="diagram-box">
+        <div class="diagram-title">[그림] 시계열 분해 및 예측 파이프라인 (2교시 답안지 손그림용 표준 블록도)</div>
+        <svg viewBox="0 0 840 268" xmlns="http://www.w3.org/2000/svg" aria-label="Time Series Analysis Pipeline Diagram">
+          <defs>
+            <marker id="arr-b" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a8a" />
+            </marker>
+            <marker id="arr-t" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0f766e" />
+            </marker>
+          </defs>
+
+          <!-- Phase 1: Decomposition & Stationarity -->
+          <rect x="12" y="10" width="816" height="96" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="5 3" />
+          <text x="24" y="30" font-size="12.5" font-weight="800" fill="#1e3a8a">① 데이터 분해 및 정상성 확보 (Preprocessing &amp; Stationarity)</text>
+
+          <rect x="26" y="42" width="142" height="52" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="97" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">원시 시계열 (Y<tspan dy="3" font-size="9.5">t</tspan><tspan dy="-3">)</tspan></text>
+          <text x="97" y="82" text-anchor="middle" font-size="11" fill="#475569">결측보간 · 이상치 처리</text>
+
+          <line x1="168" y1="68" x2="202" y2="68" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr-b)" />
+
+          <rect x="205" y="42" width="185" height="52" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="297.5" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">4대 요인 분해 (TSCI)</text>
+          <text x="297.5" y="82" text-anchor="middle" font-size="11" fill="#475569">추세(T)·계절(S)·순환(C)·불규칙(I)</text>
+
+          <line x1="390" y1="68" x2="424" y2="68" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr-b)" />
+
+          <rect x="427" y="42" width="168" height="52" rx="6" fill="#fff" stroke="#2563eb" stroke-width="1.5" />
+          <text x="511" y="64" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">정상성 검정</text>
+          <text x="511" y="82" text-anchor="middle" font-size="11" fill="#475569">ADF(단위근) · KPSS 검정</text>
+
+          <line x1="595" y1="68" x2="629" y2="68" stroke="#1e3a8a" stroke-width="1.8" marker-end="url(#arr-b)" />
+
+          <rect x="632" y="40" width="182" height="56" rx="6" fill="#1e3a8a" />
+          <text x="723" y="63" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">정상화 변환</text>
+          <text x="723" y="82" text-anchor="middle" font-size="11" fill="#dbeafe">로그변환(분산) · 차분(평균)</text>
+
+          <!-- Phase 2: Modeling & Evaluation -->
+          <rect x="12" y="130" width="816" height="126" rx="8" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.5" stroke-dasharray="5 3" />
+          <text x="24" y="150" font-size="12.5" font-weight="800" fill="#0f766e">② 모델링 · 시계열 검증 · 운영 (Modeling &amp; Walk-Forward)</text>
+
+          <!-- Connector -->
+          <path d="M 723 96 L 723 116 L 105 116 L 105 168" fill="none" stroke="#1e3a8a" stroke-width="1.6" marker-end="url(#arr-b)" />
+          <text x="414" y="112" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e3a8a">정상 시계열 / 피처 엔지니어링 (Lag · Rolling 통계)</text>
+
+          <rect x="26" y="170" width="160" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="106" y="196" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">차수 · 패턴 식별</text>
+          <text x="106" y="214" text-anchor="middle" font-size="11" fill="#475569">ACF / PACF 분석</text>
+          <text x="106" y="229" text-anchor="middle" font-size="11" fill="#475569">지연(Lag) · 외생변수 선정</text>
+
+          <line x1="186" y1="204" x2="218" y2="204" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="221" y="170" width="205" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="323.5" y="196" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">예측 모델 학습</text>
+          <text x="323.5" y="214" text-anchor="middle" font-size="10.8" fill="#475569">통계: ARIMA · SARIMA · Prophet</text>
+          <text x="323.5" y="229" text-anchor="middle" font-size="10.8" fill="#475569">AI: LSTM · PatchTST · TimesFM</text>
+
+          <line x1="426" y1="204" x2="458" y2="204" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="461" y="170" width="175" height="68" rx="6" fill="#fff" stroke="#0f766e" stroke-width="1.5" />
+          <text x="548.5" y="196" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">시계열 검증 · 평가</text>
+          <text x="548.5" y="214" text-anchor="middle" font-size="11" fill="#475569">Walk-Forward 교차검증</text>
+          <text x="548.5" y="229" text-anchor="middle" font-size="11" fill="#475569">MAE · RMSE · SMAPE</text>
+
+          <line x1="636" y1="204" x2="668" y2="204" stroke="#0f766e" stroke-width="1.8" marker-end="url(#arr-t)" />
+
+          <rect x="671" y="170" width="143" height="68" rx="6" fill="#0f766e" />
+          <text x="742.5" y="196" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff">예측 · 이상탐지</text>
+          <text x="742.5" y="214" text-anchor="middle" font-size="10.5" fill="#ccfbf1">수요·트래픽 예측</text>
+          <text x="742.5" y="229" text-anchor="middle" font-size="10.5" fill="#ccfbf1">Drift 감시 · 재학습</text>
+        </svg>
+      </div>
+
+      <h3>1. 시계열 4대 변동 요인 및 분해 모델</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">구성 요인</th>
+              <th style="width: 48%;">특징 및 정의</th>
+              <th style="width: 32%;">대표 사례</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">추세 (Trend, T)</td>
+              <td>장기간에 걸쳐 나타나는 일관된 상승 또는 하락 경향</td>
+              <td>인구 변화, 장기 전력 소비 증가</td>
+            </tr>
+            <tr>
+              <td class="center">계절성 (Seasonality, S)</td>
+              <td>일·주·월·분기 등 <strong>고정된 주기</strong>로 반복되는 변동</td>
+              <td>주말 트래픽 급증, 계절 가전 매출</td>
+            </tr>
+            <tr>
+              <td class="center">순환 (Cycle, C)</td>
+              <td>고정 주기가 없는 중·장기(통상 2년 이상) 파동 변동</td>
+              <td>경기 호황·불황 사이클</td>
+            </tr>
+            <tr>
+              <td class="center">불규칙 (Irregular, I)</td>
+              <td>설명·예측이 불가능한 우연적 오차 및 백색잡음(White Noise)</td>
+              <td>자연재해, 돌발 장애 및 이벤트</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="clean-list">
+        <li><strong>분해 결합 방식:</strong> 계절 진폭이 일정하면 <strong>가법 모델</strong>(<code>Y = T + S + C + I</code>), 추세에 비례해 진폭이 커지면 <strong>승법 모델</strong>(<code>Y = T × S × C × I</code>, 로그변환으로 가법 전환 가능) 적용</li>
+        <li><strong>약정상성(Weak Stationarity) 3조건 &amp; 변환:</strong> ① <strong>평균</strong> 일정(해결: 1차·계절 <strong>차분</strong>), ② <strong>분산</strong> 일정(해결: <strong>로그·Box-Cox 변환</strong>), ③ <strong>공분산</strong>이 시차(Lag)에만 의존. <code>ADF(귀무가설: 비정상)</code> 및 <code>KPSS(귀무가설: 정상)</code> 검정으로 확인</li>
+      </ul>
+    </section>
+
+    <!-- Ⅲ. 주요 시계열 모델 및 패러다임 비교 -->
+    <section>
+      <h2>Ⅲ. 주요 시계열 예측 모델 및 패러다임 비교</h2>
+
+      <h3>1. 통계 · 구조 분해 · 딥러닝 모델 비교</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">모델 계열</th>
+              <th style="width: 26%;">대표 기법</th>
+              <th style="width: 30%;">핵심 메커니즘 및 강점</th>
+              <th style="width: 24%;">한계 및 적용 영역</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">전통 통계 모델</td>
+              <td><strong>AR, MA, ARIMA</strong><br/>SARIMA, SARIMAX</td>
+              <td>자기회귀(<code>p</code>)-차분(<code>d</code>)-이동평균(<code>q</code>) 결합, 소규모 데이터에서 높은 해석력과 수학적 엄밀성</td>
+              <td>선형 가정, 다변량·장기 비선형 패턴 학습 취약 (단변량 단기 예측)</td>
+            </tr>
+            <tr>
+              <td class="center">구조 분해 모델</td>
+              <td><strong>Prophet</strong><br/>Holt-Winters, STL</td>
+              <td>추세(구간 선형/로지스틱)+계절성(푸리에 급수)+휴일 효과를 가법 회귀로 모델링, 결측·이상치 강건</td>
+              <td>외생변수 간 복합 상호작용 한계 (비즈니스 KPI·수요 예측)</td>
+            </tr>
+            <tr>
+              <td class="center">딥러닝 · AI 모델</td>
+              <td><strong>LSTM/GRU</strong>, N-BEATS<br/><strong>PatchTST, TimesFM</strong></td>
+              <td>게이트 순환신경망 및 패치 기반 Attention으로 장기 의존성(Long-range)·다변량 비선형 관계 학습</td>
+              <td>대규모 데이터·GPU 필요, 블랙박스 (대규모 IoT·금융·다변량)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2. ARIMA 차수 식별(ACF/PACF) 및 최신 파운데이션 모델 동향</h3>
+      <ul class="clean-list">
+        <li><strong>ACF(자기상관함수) vs PACF(편자기상관함수):</strong> <code>AR(p)</code>는 ACF가 지수 감소하고 <strong>PACF가 시차 p 이후 절단(Cut-off)</strong>되며, <code>MA(q)</code>는 <strong>ACF가 시차 q 이후 절단</strong>되고 PACF가 지수 감소</li>
+        <li><strong>시계열 파운데이션 모델(TSFM):</strong> 대규모 다중 도메인 시계열을 사전학습하여 별도 학습 없이 <strong>Zero-shot 예측</strong>을 수행하는 <code>TimesFM</code>, <code>Chronos</code>, <code>Moirai</code> 등으로 패러다임 확장</li>
+      </ul>
+    </section>
+
+    <!-- Ⅳ. 평가 지표, 한계점 및 기술사적 제언 -->
+    <section>
+      <h2>Ⅳ. 성능 평가, 실무 한계 및 기술사적 제언</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 18%;">평가 지표</th>
+              <th style="width: 44%;">특징 및 수식 의미</th>
+              <th style="width: 38%;">실무 선택 기준 및 주의점</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center">MAE</td>
+              <td>예측 오차 절대값의 평균 (<code>mean(|y - ŷ|)</code>)</td>
+              <td>이상치(Outlier)에 둔감, 원 데이터 단위 해석 직관적</td>
+            </tr>
+            <tr>
+              <td class="center">RMSE</td>
+              <td>오차 제곱 평균의 제곱근 (<code>√mean((y - ŷ)²)</code>)</td>
+              <td>큰 오차에 가중 페널티 부여 (전력 피크·장애 예측 적합)</td>
+            </tr>
+            <tr>
+              <td class="center">MAPE / SMAPE</td>
+              <td>실제값 대비 백분율(%) 오차 비율 측정</td>
+              <td>이질적 도메인 비교 용이; <code>y≈0</code> 시 MAPE 발산 → <strong>SMAPE</strong> 사용</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="clean-list">
+        <li><strong>실무 한계 및 대응:</strong> ① <strong>데이터 누수(Data Leakage)</strong> → <code>Walk-Forward(Rolling/Expanding Window)</code> 교차검증 준수, ② <strong>개념 표류(Concept Drift)</strong> → 외생변수 반영 및 잔차(Residual) 모니터링 기반 자동 재학습, ③ <strong>신규 항목 콜드 스타트</strong> → 계층적 시계열(HTS) 및 사전학습 TSFM 활용</li>
+        <li><strong>기술사적 제언:</strong> 해석력과 안정성이 검증된 <strong>통계·분해 모델(SARIMAX/Prophet)</strong>과 고차원 비선형 패턴을 포착하는 <strong>딥러닝(PatchTST/TSFM)</strong>을 결합한 하이브리드 앙상블 아키텍처 및 <strong>MLOps 기반 지속 재학습 파이프라인</strong> 구축 필요</li>
+      </ul>
+    </section>
+
+    <!-- 암기 팁 -->
+    <aside class="memo-box">
+      <div class="memo-title">💡 2교시 시험장 암기 팁 (두문자 요약)</div>
+      <ul class="memo-list">
+        <li><span class="mnemonic">4대 요인: 추·계·순·불</span> <strong>추</strong>세(Trend) · <strong>계</strong>절(Seasonality) · <strong>순</strong>환(Cycle) · <strong>불</strong>규칙(Irregular)</li>
+        <li><span class="mnemonic">정상성: 평·분·공 / 로·차</span> <strong>평</strong>균 · <strong>분</strong>산 · 시차<strong>공</strong>분산 일정 / 분산 안정은 <strong>로</strong>그변환 · 평균 안정은 <strong>차</strong>분</li>
+        <li><span class="mnemonic">절차: 분·정·식·모·검</span> 요인<strong>분</strong>해 → <strong>정</strong>상성(ADF/KPSS) → 차수<strong>식</strong>별(ACF/PACF) → <strong>모</strong>델링(ARIMA/LSTM) → <strong>검</strong>증(Walk-Forward)</li>
+        <li><span class="mnemonic">평가지표: 매·루·마</span> <strong>MA</strong>E(이상치 둔감) · <strong>R</strong>MSE(큰 오차 페널티) · <strong>MA</strong>PE/SMAPE(백분율 비교)</li>
+      </ul>
+    </aside>
+  </article>
+</body>
+</html>

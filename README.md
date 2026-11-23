@@ -19,6 +19,7 @@
 
 ### AI · Cloud (`AI_Cloud/`)
 - [RAG (Retrieval-Augmented Generation, 검색 증강 생성)](./AI_Cloud/RAG.html) — 2교시 서술형
+- [시계열 분석 (Time Series Analysis)](./AI_Cloud/Time_Series_Analysis.html) — 1교시 용어형 · 2교시 서술형
 
 ## 작성 규칙
 - 세부 작성 기준은 [AGENTS.md](./AGENTS.md)를 따릅니다.
