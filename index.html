@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>기술사 답안 노트 허브 (PE Notes)</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --accent: #0f766e;
+      --accent-light: #f0fdf4;
+      --accent-border: #bbf7d0;
+      --dark: #0f172a;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-hover: 0 10px 15px -3px rgba(30, 58, 138, 0.12), 0 4px 6px -4px rgba(30, 58, 138, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 32px 20px 60px;
+    }
+
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    /* 상단 헤더 */
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 36px 36px 30px;
+      margin-bottom: 28px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -40px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(4px);
+    }
+
+    .header-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .header-desc {
+      font-size: 14.5px;
+      color: #cbd5e1;
+      max-width: 680px;
+    }
+
+    /* 통계/요약 바 */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--dark);
+    }
+
+    /* 검색 및 필터 컨트롤 */
+    .controls-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      font-size: 14px;
+      padding: 11px 16px 11px 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary-border);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    }
+
+    .count-pill {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+    }
+
+    .filter-btn.active .count-pill {
+      background: rgba(255,255,255,0.25);
+      color: #ffffff;
+    }
+
+    /* 도메인 섹션 */
+    .domain-section {
+      margin-bottom: 32px;
+    }
+
+    .domain-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .domain-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .domain-code {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--primary-border);
+    }
+
+    /* 답안 카드 그리드 */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .note-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .note-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: #93c5fd;
+    }
+
+    .card-top {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .badge-p1 {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .badge-p2 {
+      background: #e0e7ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+    }
+
+    .badge-both {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--dark);
+      letter-spacing: -0.01em;
+      line-height: 1.45;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .open-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .note-card:hover .open-indicator {
+      text-decoration: underline;
+    }
+
+    /* 빈 검색 결과 */
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 48px 20px;
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+    }
+
+    /* 푸터 */
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px 12px;
+      }
+      header {
+        padding: 24px 20px;
+      }
+      .header-title {
+        font-size: 22px;
+      }
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+        컴퓨터시스템응용기술사 &amp; 정보관리기술사
+      </div>
+      <h1 class="header-title">기술사 답안 학습 포털 (PE Notes Hub)</h1>
+      <p class="header-desc">
+        오프라인 환경에서도 즉시 열람 및 인쇄 가능한 실전형 기술사 답안 모음집입니다. 항목을 클릭하면 각 답안 페이지가 열립니다.
+      </p>
+    </header>
+
+    <!-- 통계 요약 -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-label">총 답안 수</span>
+        <span class="stat-val" id="totalCount">2</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">등록 도메인</span>
+        <span class="stat-val" id="domainCount">1 / 7</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">문서 포맷</span>
+        <span class="stat-val" style="font-size: 18px; line-height: 28px; color: var(--accent);">독립 HTML · SVG</span>
+      </div>
+    </div>
+
+    <!-- 검색 & 필터 -->
+    <div class="controls-panel">
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="주제명, 키워드, 교시 검색 (예: RAG, 시계열, 1교시, 2교시)..." />
+      </div>
+
+      <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="all">전체보기 <span class="count-pill" id="filterCountAll">2</span></button>
+        <button class="filter-btn" data-filter="AI_Cloud">AI · Cloud <span class="count-pill">2</span></button>
+        <button class="filter-btn" data-filter="OS_CA">OS · CA <span class="count-pill">0</span></button>
+        <button class="filter-btn" data-filter="NW">네트워크 <span class="count-pill">0</span></button>
+        <button class="filter-btn" data-filter="DB">데이터베이스 <span class="count-pill">0</span></button>
+        <button class="filter-btn" data-filter="SE">소프트웨어공학 <span class="count-pill">0</span></button>
+        <button class="filter-btn" data-filter="SEC">정보보안 <span class="count-pill">0</span></button>
+        <button class="filter-btn" data-filter="IT_Mgmt">IT경영/법제도 <span class="count-pill">0</span></button>
+      </div>
+    </div>
+
+    <!-- 답안 목록 영역 -->
+    <main id="contentArea">
+      <!-- AI · Cloud -->
+      <section class="domain-section" data-domain="AI_Cloud">
+        <div class="domain-header">
+          <h2 class="domain-title">
+            <span>인공지능 · 빅데이터 · 클라우드</span>
+            <span class="domain-code">AI_Cloud</span>
+          </h2>
+        </div>
+
+        <div class="cards-grid">
+          <!-- RAG -->
+          <a href="./AI_Cloud/RAG.html" class="note-card" data-title="RAG 검색 증강 생성 Retrieval-Augmented Generation" data-type="2교시">
+            <div class="card-top">
+              <div class="card-badges">
+                <span class="badge badge-p2">2교시 서술형 (2.5p)</span>
+                <span class="badge" style="background:#f1f5f9; color:#475569;">LLM · 검색</span>
+              </div>
+              <h3 class="card-title">RAG (Retrieval-Augmented Generation)</h3>
+              <p class="card-desc">LLM 환각 극복 및 실시간 최신성 확보를 위한 외부 지식 검색 결합 아키텍처 및 고도화 전략</p>
+            </div>
+            <div class="card-bottom">
+              <span>파일: RAG.html</span>
+              <span class="open-indicator">
+                답안 열기
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </span>
+            </div>
+          </a>
+
+          <!-- Time Series Analysis -->
+          <a href="./AI_Cloud/Time_Series_Analysis.html" class="note-card" data-title="시계열 분석 Time Series Analysis ARIMA 지수평활법 분해법 정상성" data-type="1교시 2교시">
+            <div class="card-top">
+              <div class="card-badges">
+                <span class="badge badge-both">1교시 용어형 &amp; 2교시 서술형 합본</span>
+                <span class="badge" style="background:#f1f5f9; color:#475569;">빅데이터 · 예측</span>
+              </div>
+              <h3 class="card-title">시계열 분석 (Time Series Analysis)</h3>
+              <p class="card-desc">시간 경과 관측 데이터의 정상성(Stationarity) 확보 및 통계적/딥러닝 기반 패턴 분석과 예측 기법</p>
+            </div>
+            <div class="card-bottom">
+              <span>파일: Time_Series_Analysis.html</span>
+              <span class="open-indicator">
+                답안 열기
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- 검색 결과 없음 -->
+      <div id="emptyState" class="empty-state">
+        <p style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">일치하는 답안이 없습니다.</p>
+        <p style="font-size: 13px;">다른 검색어나 필터를 선택해 보세요.</p>
+      </div>
+    </main>
+
+    <footer>
+      <p>컴퓨터시스템응용기술사 &amp; 정보관리기술사 시험 대비 로컬 지식 허브 · 오프라인 완결형 단일 파일</p>
+    </footer>
+  </div>
+
+  <script>
+    // 필터 및 실시간 검색 동작
+    const searchInput = document.getElementById('searchInput');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const sections = document.querySelectorAll('.domain-section');
+    const cards = document.querySelectorAll('.note-card');
+    const emptyState = document.getElementById('emptyState');
+
+    let currentFilter = 'all';
+
+    function applyFilterAndSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      sections.forEach(section => {
+        const domain = section.getAttribute('data-domain');
+        const matchesFilter = (currentFilter === 'all' || currentFilter === domain);
+        let sectionVisibleCards = 0;
+
+        const sectionCards = section.querySelectorAll('.note-card');
+        sectionCards.forEach(card => {
+          const title = (card.getAttribute('data-title') || '').toLowerCase();
+          const text = card.innerText.toLowerCase();
+          const matchesSearch = !query || title.includes(query) || text.includes(query);
+
+          if (matchesFilter && matchesSearch) {
+            card.style.display = 'flex';
+            sectionVisibleCards++;
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // 해당 도메인에 표시할 카드가 없으면 도메인 헤더 숨김
+        if (sectionVisibleCards > 0) {
+          section.style.display = 'block';
+        } else {
+          section.style.display = 'none';
+        }
+      });
+
+      if (visibleCount === 0) {
+        emptyState.style.display = 'block';
+      } else {
+        emptyState.style.display = 'none';
+      }
+    }
+
+    // 검색 입력 이벤트
+    searchInput.addEventListener('input', applyFilterAndSearch);
+
+    // 필터 버튼 클릭 이벤트
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-filter');
+        applyFilterAndSearch();
+      });
+    });
+  </script>
+</body>
+</html>
